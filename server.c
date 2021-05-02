@@ -9,13 +9,38 @@
 #include <netinet/in.h>
 
 #define PORT 8080
+#define MAX 80
 #define SockAddr struct sockaddr
+
+
+void exchangeMessages(int sock) {
+    char buff[MAX];
+    int n;
+    // Loop infinito para manter a troca de mensagens
+    while (1) {
+        bzero(buff, MAX);
+
+        // Le a mensagem recebida e copia para o buffer
+        read(sock, buff, sizeof(buff));
+
+		// Printa a mensagem recebida
+        printf("Mensagem recebida do cliente %d: %s", sock, buff);
+
+		// Responde o cliente com a mensagem recebida
+		write(sock, buff, sizeof(buff));
+
+        // Caso a mensagem recebida seja "exit", fecha a conexao
+        if (strncmp("exit", buff, 4) == 0) {
+            printf("Cliente %d saiu do servidor...\n", sock);
+            break;
+        }
+    }
+}
 
 int main()
 {
 	int sock, connection, len;
 	int bytesSent;
-	char* message = "Hello Client!\n";
 	struct sockaddr_in serverAddress, client;
 
 	// Cria o socket
@@ -62,10 +87,8 @@ int main()
 			printf("Conexão aceita com sucesso!\n");
 		}
 
-		// Envio de mensagens do servidor para o cliente
-		bytesSent = send(connection, message, strlen(message), 0);
-		printf("%d bytes enviados para o cliente %d!\n", bytesSent, connection);
-
+		// Troca de mensagens entre o servidor e o cliente
+		exchangeMessages(connection);
 		close(client);
 	}
 
