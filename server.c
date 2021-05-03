@@ -8,10 +8,22 @@
 #include <errno.h>
 #include <netinet/in.h>
 
+#include "actions.h"
+
 #define PORT 8080
-#define MAX 80
+#define MAX 200
 #define SockAddr struct sockaddr
 
+typedef struct profile {
+	char email[30];
+	char firstName[20];
+	char lastName[20];
+	char residence[30];
+	char academicBackground[50];
+	char graduationYear[4];
+	char skills[300];
+	char professionalExperience[300];
+} profile;
 
 void exchangeMessages(int sock) {
     char buff[MAX];
@@ -25,15 +37,18 @@ void exchangeMessages(int sock) {
 
 		// Printa a mensagem recebida
         printf("Mensagem recebida do cliente %d: %s", sock, buff);
-
-		// Responde o cliente com a mensagem recebida
-		write(sock, buff, sizeof(buff));
-
-        // Caso a mensagem recebida seja "exit", fecha a conexao
-        if (strncmp("exit", buff, 4) == 0) {
-            printf("Cliente %d saiu do servidor...\n", sock);
+		int requestError = treatClientActionRequest(buff);
+		if (requestError == -2) {
+	        // Caso o retorno seja -2, fecha a conexao
+			write(sock, "exit\n", 5*sizeof(char));
+			printf("Cliente %d saiu do servidor...\n", sock);
             break;
-        }
+		} else if (requestError < 0) {
+			write(sock, "Açao invalida!\n", 16*sizeof(char));
+		} else {
+			// Responde o cliente com a mensagem recebida
+			write(sock, buff, sizeof(buff));
+		}
     }
 }
 
