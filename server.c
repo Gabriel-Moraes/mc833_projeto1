@@ -18,22 +18,23 @@ void exchangeMessages(int sock) {
     int n;
     // Loop infinito para manter a troca de mensagens
     while (1) {
+		// Zera o conteudo do buffer
         bzero(buff, MAX);
 
         // Le a mensagem recebida e copia para o buffer
         read(sock, buff, sizeof(buff));
 
 		// Printa a mensagem recebida
-        printf("Mensagem recebida do cliente %d: %s", sock, buff);
-
-		// Responde o cliente com a mensagem recebida
-		write(sock, buff, sizeof(buff));
-
-        // Caso a mensagem recebida seja "exit", fecha a conexao
-        if (strncmp("exit", buff, 4) == 0) {
-            printf("Cliente %d saiu do servidor...\n", sock);
+        printf("Mensagem recebida do cliente %d:\n%s", sock, buff);
+		int requestError = treatClientActionRequest(sock, buff);
+		if (requestError == -2) {
+	        // Caso o retorno seja -2, fecha a conexao
+			write(sock, "exit\n", 5*sizeof(char));
+			printf("Cliente %d saiu do servidor...\n", sock);
             break;
-        }
+		} else if (requestError < 0) {
+			write(sock, "Açao invalida!\n", 16*sizeof(char));
+		}
     }
 }
 
@@ -51,6 +52,7 @@ int main()
 	} else {
 		printf("Socket criado com sucesso!\n");
 	}
+	// Zera o conteudo do serverAddress
 	bzero(&serverAddress, sizeof(serverAddress));
 
 	// Atribui valores da porta, do tipo de IP e dos endereços aceitos para o servidor
