@@ -9,7 +9,7 @@
 #include <netinet/in.h>
 
 #define PORT 8080
-#define MAX 80
+#define MAX 200
 #define SockAddr struct sockaddr
 
 /** Realiza a troca de mensagens entre o cliente e o servidor */
@@ -26,7 +26,7 @@ void exchangeMessages(int sock) {
 		write(sock, buff, sizeof(buff));
 		bzero(buff, sizeof(buff));
 		read(sock, buff, sizeof(buff));
-		printf("Eco do servidor: %s", buff);
+		printf("Resposta do servidor: %s", buff);
 		if ((strncmp(buff, "exit", 4)) == 0) {
 			printf("Saindo do servidor %d...\n", sock);
 			break;
