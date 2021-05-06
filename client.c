@@ -12,12 +12,26 @@
 #define MAX 200
 #define SockAddr struct sockaddr
 
+// TODO implementar essa mensagem como retorno do servidor, nao como parte do cliente
+void printInitialMessage() {
+	printf("Bem vindo ao servidor! Para executar uma ação, insira uma das seguintes entradas:\n1: Criar um perfil\n"
+	"2: Adicionar uma experiencia profissional\n"
+	"3: Listar todos os graduados num determinado curso\n"
+	"4: Listar todos os usuários com uma determinada habilidade\n"
+	"5: Listar todos os graduados num determinado ano\n"
+	"6: Listar todos os perfis\n"
+	"7: Listar informaçoes sobre um perfil\n"
+	"8: Remover um perfil\n"
+	"exit: Sair\n");
+}
+
 /** Realiza a troca de mensagens entre o cliente e o servidor */
 void exchangeMessages(int sock) {
 	char buff[MAX];
-	int n;
+	int n, responseSize;
 	while(1) {
 		bzero(buff, sizeof(buff));
+
 		printf("Digite a mensagem a ser enviada: ");
 		n = 0;
 		while ((buff[n++] = getchar()) != '\n') {
@@ -30,6 +44,25 @@ void exchangeMessages(int sock) {
 		if ((strncmp(buff, "exit", 4)) == 0) {
 			printf("Saindo do servidor %d...\n", sock);
 			break;
+		}
+
+		bzero(buff, sizeof(buff));
+
+		// Le o tamanho do retorno
+		responseSize = 0;
+		read(sock, buff, 10*sizeof(char));
+		responseSize = atoi(buff);
+	    printf("\nTamanho da resposta: %d\n", responseSize);
+
+
+		bzero(buff, sizeof(buff));
+		printf("Resposta do servidor:\n");	
+		// Imprime a resposta completa do servidor, mesmo que envolva mais de uma operaçao no buffer
+		while(responseSize > 0) {
+			read(sock, buff, sizeof(buff));
+		    printf("Resposta lida...\n");
+			printf("%s", buff);
+			responseSize-= (int) sizeof(buff);
 		}
 	}
 }
@@ -61,6 +94,8 @@ int main() {
 		printf("Conectado ao servidor...\n");
 	}
 
+
+	printInitialMessage();
 	exchangeMessages(sock);
 
 	// Fecha o socket

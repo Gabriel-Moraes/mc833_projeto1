@@ -14,20 +14,8 @@
 #define MAX 200
 #define SockAddr struct sockaddr
 
-typedef struct profile {
-	char email[30];
-	char firstName[20];
-	char lastName[20];
-	char residence[30];
-	char academicBackground[50];
-	char graduationYear[4];
-	char skills[300];
-	char professionalExperience[300];
-} profile;
-
 void exchangeMessages(int sock) {
     char buff[MAX];
-    int n;
     // Loop infinito para manter a troca de mensagens
     while (1) {
         bzero(buff, MAX);
@@ -37,7 +25,7 @@ void exchangeMessages(int sock) {
 
 		// Printa a mensagem recebida
         printf("Mensagem recebida do cliente %d: %s", sock, buff);
-		int requestError = treatClientActionRequest(buff);
+		int requestError = treatClientActionRequest(sock, buff);
 		if (requestError == -2) {
 	        // Caso o retorno seja -2, fecha a conexao
 			write(sock, "exit\n", 5*sizeof(char));
@@ -55,7 +43,6 @@ void exchangeMessages(int sock) {
 int main()
 {
 	int sock, connection, len;
-	int bytesSent;
 	struct sockaddr_in serverAddress, client;
 
 	// Cria o socket
@@ -104,7 +91,7 @@ int main()
 
 		// Troca de mensagens entre o servidor e o cliente
 		exchangeMessages(connection);
-		close(client);
+		close(connection);
 	}
 
 	// Após todas as conexões, fecha o socket
