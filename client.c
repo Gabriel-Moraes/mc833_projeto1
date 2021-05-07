@@ -22,7 +22,7 @@ void printInitialMessage() {
 	"6: Listar todos os perfis\n"
 	"7: Listar informaçoes sobre um perfil\n"
 	"8: Remover um perfil\n"
-	"exit: Sair\n");
+	"exit: Sair\n\n");
 }
 
 /** Realiza a troca de mensagens entre o cliente e o servidor */
@@ -34,25 +34,16 @@ void exchangeMessages(int sock) {
 
 		printf("Digite a mensagem a ser enviada: ");
 		n = 0;
-		while ((buff[n++] = getchar()) != '\n') {
-			// Espera ate a mensagem ser transferida completamente
-		}
+		// Espera ate a mensagem ser transferida completamente
+		while ((buff[n++] = getchar()) != '\n') {}
 		write(sock, buff, sizeof(buff));
-		bzero(buff, sizeof(buff));
-		read(sock, buff, sizeof(buff));
-		printf("Resposta do servidor: %s", buff);
-		if ((strncmp(buff, "exit", 4)) == 0) {
-			printf("Saindo do servidor %d...\n", sock);
-			break;
-		}
-
 		bzero(buff, sizeof(buff));
 
 		// Le o tamanho do retorno
 		responseSize = 0;
 		read(sock, buff, 10*sizeof(char));
 		responseSize = atoi(buff);
-	    printf("\nTamanho da resposta: %d\n", responseSize);
+	    	printf("\nTamanho da resposta: %d\n", responseSize);
 
 
 		bzero(buff, sizeof(buff));
