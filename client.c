@@ -12,25 +12,58 @@
 #define MAX 200
 #define SockAddr struct sockaddr
 
+// TODO implementar essa mensagem como retorno do servidor, nao como parte do cliente
+void printInitialMessage() {
+	printf("Bem vindo ao servidor! Para executar uma ação, insira uma das seguintes entradas:\n1: Criar um perfil\n"
+	"2: Adicionar uma experiencia profissional\n"
+	"3: Listar todos os graduados num determinado curso\n"
+	"4: Listar todos os usuários com uma determinada habilidade\n"
+	"5: Listar todos os graduados num determinado ano\n"
+	"6: Listar todos os perfis\n"
+	"7: Listar informaçoes sobre um perfil\n"
+	"8: Remover um perfil\n"
+	"exit: Sair\n\n");
+}
+
 /** Realiza a troca de mensagens entre o cliente e o servidor */
+// TODO Verificar o que faz nao vir corretamente a mensagem de titulo do servidor
+// (desconfio que seja algum \n sobrando em alguns casos)
 void exchangeMessages(int sock) {
 	char buff[MAX];
-	int n;
+	int n, responseSize;
 	while(1) {
 		bzero(buff, sizeof(buff));
 		printf("Digite a mensagem a ser enviada: ");
 		n = 0;
-		while ((buff[n++] = getchar()) != '\n') {
-			// Espera ate a mensagem ser transferida completamente
-		}
-		write(sock, buff, sizeof(buff));
+		// Espera ate a mensagem ser digitada completamente
+		while ((buff[n++] = getchar()) != '\n') {}
+		printf("Enviando mensagem: %s\n", buff);
+		// Escreve a mensagem excluindo o '\n'
+		write(sock, buff, strlen(buff)-1);
 		bzero(buff, sizeof(buff));
-		read(sock, buff, sizeof(buff));
-		printf("Resposta do servidor: %s", buff);
+
+		// Le o tamanho do retorno
+		responseSize = 0;
+		read(sock, buff, 10);
+		responseSize = atoi(buff);
+	    printf("Tamanho da resposta: %d\n", responseSize);
+
+		bzero(buff, sizeof(buff));
+		printf("Resposta do servidor:\n");	
+		// Imprime a resposta completa do servidor, mesmo que envolva mais de uma operaçao no buffer
+		while(responseSize > 0) {
+			read(sock, buff, sizeof(buff));
+			printf("%s", buff);
+			responseSize-= (int) sizeof(buff);
+		}
+		
+		// TODO Fazer funcionar corretamente para qualquer fluxo
 		if ((strncmp(buff, "exit", 4)) == 0) {
 			printf("Saindo do servidor %d...\n", sock);
 			break;
 		}
+
+		printf("\n");
 	}
 }
 
@@ -44,7 +77,7 @@ int main() {
 		printf("Falha ao criar o socket... Erro: %d\n", errno);
 		exit(0);
 	} else {
-		printf("Socker criado com sucesso!\n");
+		printf("Socket criado com sucesso!\n");
 	}
 	bzero(&serverAddress, sizeof(serverAddress));
 
@@ -61,6 +94,7 @@ int main() {
 		printf("Conectado ao servidor...\n");
 	}
 
+	printInitialMessage();
 	exchangeMessages(sock);
 
 	// Fecha o socket
