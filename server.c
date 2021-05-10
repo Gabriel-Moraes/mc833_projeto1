@@ -42,14 +42,13 @@ void exchangeMessages(int sock) {
 		int requestError = treatClientActionRequest(sock, buff);
 		if (requestError == -2) {
 	        // Caso o retorno seja -2, fecha a conexao
-			write(sock, "exit\n", 5*sizeof(char));
+			write(sock, "5", 2);
+			write(sock, "exit\n", 5);
 			printf("Cliente %d saiu do servidor...\n", sock);
             break;
 		} else if (requestError < 0) {
-			write(sock, "Açao invalida!\n", 16*sizeof(char));
-		} else {
-			// Responde o cliente com a mensagem recebida
-			write(sock, buff, sizeof(buff));
+			write(sock, "16", 3);
+			write(sock, "Açao invalida!\n", 16);
 		}
     }
 }

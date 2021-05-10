@@ -13,6 +13,8 @@
 #define SockAddr struct sockaddr
 
 /** Realiza a troca de mensagens entre o cliente e o servidor */
+// TODO Verificar o que faz nao vir corretamente a mensagem de titulo do servidor
+// (desconfio que seja algum \n sobrando em alguns casos)
 void exchangeMessages(int sock) {
 	char buff[MAX];
 	int n;
@@ -44,7 +46,7 @@ int main() {
 		printf("Falha ao criar o socket... Erro: %d\n", errno);
 		exit(0);
 	} else {
-		printf("Socker criado com sucesso!\n");
+		printf("Socket criado com sucesso!\n");
 	}
 	bzero(&serverAddress, sizeof(serverAddress));
 

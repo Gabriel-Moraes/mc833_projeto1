@@ -499,9 +499,8 @@ int treatClientActionRequest(int sock, char* request) {
             default: 
                 printf("Açao invalida!\n");
                 return -1;	
-
-            return 0;
         }
+        return 0;
     }
     return 0;
 }
