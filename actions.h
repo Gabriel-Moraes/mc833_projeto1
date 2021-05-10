@@ -1,4 +1,4 @@
-int treatClientActionRequest(char* request); 
+int treatClientActionRequest(int sock, char* request); 
 int createProfileAction();
 int addProfessionalExperienceAction();
 int listGraduatedOnCourseAction();
