@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <unistd.h>
 // Bibliotecas para o socket
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <netinet/in.h>
-
+#include <arpa/inet.h>
 #define PORT 8080
 #define MAX 200
 #define SockAddr struct sockaddr
