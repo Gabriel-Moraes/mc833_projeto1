@@ -10,16 +10,20 @@
 #define PORT 8080
 #define MAX 200
 #define SockAddr struct sockaddr
-char* removeNewLinesServer(char* data){
-    int len = strlen(data);
+
+char* removeNewLinesServer(char* data) {
     int i;
-    for(i=0;i < len ; i++){
-        if(data[i]=='\n' || data[i] == '\t'|| data[i] == '\r') {
+    int len = strlen(data);
+
+    for(i=0;i < len ; i++) {
+        if (data[i]=='\n' || data[i] == '\t'|| data[i] == '\r') {
             data[i] = 0;
         }
     }
+
     return data;
 }
+
 void exchangeMessages(int sock) {
     char buff[MAX];
     // Loop infinito para manter a troca de mensagens
@@ -51,8 +55,7 @@ void exchangeMessages(int sock) {
     }
 }
 
-int main()
-{
+int main() {
 	int sock, connection, len;
 	struct sockaddr_in serverAddress, client;
 	int master_socket, client_socket[10], activity, i, sd;

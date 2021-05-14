@@ -2,7 +2,7 @@
 
 #define MAX 200
 
-// Constantes 
+// Constantes para orientar o cliente
 const char* getEmailRegisterMessage = "Digite o email para cadastro: \n";
 const char* getFirstNameRegisterMessage = "Digite o seu primeiro nome para cadastro: \n";
 const char* getLastNameRegisterMessage = "Digite o seu último nome para cadastro: \n";
@@ -19,16 +19,14 @@ const char* getSkillMessage = "Digite a habilidade que gostaria de buscar: \n";
 const char* getYearMessage = "Digite o ano que gostaria de buscar: \n";
 const char* successfullyRemovedMessage = "Usuario removido com sucesso\n";
 
-// Funçoes privadas
+/** Funçoes privadas */
 
 // TODO atribuir corretamente os campos do arquivo para os atributos da struct
-//  Verificar se o segmentation fault é aqui ou no listGraduatedOnCourseAction
 char* removeBlanks(char* text, char* blank) {
     // char blank[300];
     int c = 0, d = 0;
  
-   while (text[c] != '\0')
-   {
+   while (text[c] != '\0') {
       if (!(text[c] == ' ' && text[c+1] == ' ')) {
         blank[d] = text[c];
         d++;
@@ -38,15 +36,15 @@ char* removeBlanks(char* text, char* blank) {
  
    blank[d] = '\0';
  
-   printf("Text after removing blanks\n%s\n", blank);
+   printf("Texto apos remover espaços em branco:\n%s\n", blank);
  
    return blank;
 }
-//Funções para remover quebras de linha dos campos
+
+/** Funções para remover quebras de linha dos campos */
 
 char* removeNewLinesEmail(char email[30]  ) {
-//     char* temp = strstr(email, "\r");
-// // Remove \n.
+    // Remove \n.
     int i;
     int len = strlen(email);
     for(i=0;i < len ; i++){
@@ -69,6 +67,7 @@ char* removeNewLinesFN(char firstName[20]){
     }
     return firstName;
 }
+
 char* removeNewLinesLN(char lastName[20]){
     int len = strlen(lastName);
     int i;
@@ -79,6 +78,7 @@ char* removeNewLinesLN(char lastName[20]){
     }
     return lastName;
 }
+
 char* removeNewlinesRes(char residence[30]){
     int len = strlen(residence);
     int i;
@@ -101,6 +101,7 @@ char* removeNewLinesAB(char academicBackground[50]) {
     }
     return academicBackground;
 }
+
 char* removeNewLinesGradY(char graduationYear[4]) {
     int len = strlen(graduationYear);
     int i;
@@ -111,6 +112,7 @@ char* removeNewLinesGradY(char graduationYear[4]) {
     }
     return graduationYear;
 }
+
 char* removeNewLinesSkill(char skills[300]){
     int len = strlen(skills);
     int i;
@@ -121,6 +123,7 @@ char* removeNewLinesSkill(char skills[300]){
     }
     return skills;
 }
+
 char* removeNewLinesProfExp(char professionalExperience[300]){
     int len = strlen(professionalExperience);
     int i;
@@ -143,7 +146,8 @@ char* removeNewLines(char* data){
     return data;
 }
 
-char* createProfile(char email[30],	char firstName[20],	char lastName[20], char residence[30], char academicBackground[50], char graduationYear[4], char skills[300], char professionalExperience[300]) {
+char* createProfile(char email[30],	char firstName[20],	char lastName[20], char residence[30], char academicBackground[50], char graduationYear[4], 
+                    char skills[300], char professionalExperience[300]) {
     char email2[30];
     char professionalExperience2[300];
     char firstName2[20];
@@ -159,11 +163,7 @@ char* createProfile(char email[30],	char firstName[20],	char lastName[20], char 
         printf("Falha ao abrir o arquivo!\n");
         return NULL;
     }
-    // int len = strlen(email);
-    // if(email[len-1]=='\n' || email[len-1] == '\t'|| email[len-1] == '\r') {
-    //     email[len-1] = 0;
-    //     printf("entrou aqui \n");
-    // }
+
     email = removeNewLinesEmail(email);
     firstName = removeNewLinesFN(firstName);
     lastName = removeNewLinesLN(lastName);
@@ -179,9 +179,7 @@ char* createProfile(char email[30],	char firstName[20],	char lastName[20], char 
     strcpy(residence2 , removeBlanks(residence, residence2));
     strcpy(academicBackground2 , removeBlanks(academicBackground, academicBackground2));
     strcpy(graduationYear2 , removeBlanks(graduationYear, graduationYear2));
-    strcpy(skills2 , removeBlanks(skills, skills2));
-    // fprintf(file,"Email, First Name, Last Name, Residence, Academic Background, graduation Year, skills, Professional Experience\n");
-    
+    strcpy(skills2 , removeBlanks(skills, skills2));  
 
     // Cria um novo perfil com base nas informaçoes recebidas
 
@@ -194,8 +192,7 @@ char* createProfile(char email[30],	char firstName[20],	char lastName[20], char 
     strcpy(newProfile.graduationYear, graduationYear2);
     strcpy(newProfile.skills, skills2);
     strcpy(newProfile.professionalExperience, professionalExperience2);
-    // int returnCode = fprintf(file, "%30s, %20s, %20s, %30s, %50s, %4s, %300s, %300s\n",newProfile.email, newProfile.firstName,newProfile.lastName,newProfile.residence,newProfile.academicBackground,
-        // newProfile.graduationYear, newProfile.skills, newProfile.professionalExperience);
+
     int returnCode = fwrite (&newProfile, sizeof(Profile), 1,file);
     if (returnCode) {
         printf("Perfil inserido com sucesso!\n");    
@@ -206,7 +203,6 @@ char* createProfile(char email[30],	char firstName[20],	char lastName[20], char 
         fclose(file);
         return "Falha ao inserir perfil!\n";
     }
-
 }
 
 char* addProfessionalExperience(char email[30], int sock) {
@@ -219,7 +215,6 @@ char* addProfessionalExperience(char email[30], int sock) {
     }
 
     Profile searchedProfile;
-    // char* response = malloc(1000);
     char* emailNoNewLine = removeNewLines(email);
     char responseSize[MAX];
     char profExp[300];
@@ -240,9 +235,6 @@ char* addProfessionalExperience(char email[30], int sock) {
             read(sock, profExp, sizeof(profExp));
             printf("experiencia lida...(%s)\n", profExp);
             char* profExpNoNewLine = removeNewLinesProfExp(profExp);
-            // sprintf (response, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", searchedProfile.email, searchedProfile.firstName, searchedProfile.lastName, 
-            //             searchedProfile.residence, searchedProfile.academicBackground, searchedProfile.graduationYear, searchedProfile.skills,
-            //                 searchedProfile.professionalExperience);
             strcpy(searchedProfile.professionalExperience,profExpNoNewLine);
             fwrite (&searchedProfile, sizeof(Profile), 1,file);
             return "Perfil Atualizado com Sucesso!\n";
@@ -254,6 +246,7 @@ char* addProfessionalExperience(char email[30], int sock) {
 
     return NULL;
 }
+
 char* listGraduatedOnCourse(char* course) {
     FILE* file = NULL;
     file = fopen("files/users.csv", "r");
@@ -266,16 +259,13 @@ char* listGraduatedOnCourse(char* course) {
     Profile searchedProfile[100];
     char* response =malloc (90);
     int i = 0;
-    // int size;
     printf("Lendo o arquivo...\n");
 
-    // int count = readFile(searchedProfile, file);
-     if(file==NULL){
-       printf("Error\n");
+    if (file==NULL) {
+       printf("Erro!\n");
        return "";
-    }else{
+    } else {
         char* courseNoNewLine = removeNewLines(course);
-        // printf("o valor de count é %d", count);
         while(fread(&searchedProfile[i], sizeof(Profile), 1, file) ) {
             printf("%s\n", searchedProfile[i].academicBackground); 
             if(!strcmp(searchedProfile[i].academicBackground, courseNoNewLine)) {
@@ -289,14 +279,6 @@ char* listGraduatedOnCourse(char* course) {
     }
     fclose(file);
     
-    // while(fread(&searchedProfile, sizeof(Perfil), 1, file)) {
-    //     
-    //     if(!strcmp(searchedProfile.academicBackground, course)) {
-    //         printf("Perfil encontrado! Enviando informaçoes...\n");
-    //         sprintf(response, "%s\n%s\n%s\n", searchedProfile.email, searchedProfile.firstName, 
-    //                     searchedProfile.lastName);
-    //     }
-    // }
     if(strcmp("",response) == 0) {
         printf("Nao foi encontrado um perfil com este curso\n");
         strcpy(response , "Nao foi encontrado um perfil com este curso\n");
@@ -306,6 +288,7 @@ char* listGraduatedOnCourse(char* course) {
                       
     return response;
 }
+
 char* listHasSkill(char* skill) {
     FILE* file = NULL;
     file = fopen("files/users.csv", "r");
@@ -430,7 +413,8 @@ char* removeProfile(char* email)
     }
 }
 
-// Funçoes do header
+/** Funçoes do header */
+
 int treatClientActionRequest(int sock, char* request) {
 	if ((strncmp(request, "exit", 4)) == 0) {
         return -2;
@@ -717,26 +701,6 @@ int listGraduatedOnYearAction(int sock) {
     return 0;
 }
 
-/** Pega o numero de caracteres do arquivo 
- * 
- * Codigo com base na seguinte pagina do geeks4geeks
- * https://www.geeksforgeeks.org/c-program-to-count-the-number-of-characters-in-a-file/
-*/
-// int countCharsOnFile(FILE* file) {
-//     int count = 0;
-//     char c;
-
-//     // Conta a quantidade de caracteres no arquivo
-//     while ((c = fgetc(file)) != EOF) {
-//         count++;
-//     }
-
-//     fclose(file);
-//     return count;
-// }
-
-
-
 int listAllProfilesAction(int sock) {
     // Abre o arquivo dos usuarios
     FILE* file = NULL;
@@ -747,7 +711,6 @@ int listAllProfilesAction(int sock) {
         return -1;
     }
 
-
     char responseSize[MAX];
     Profile searchedProfile;
     // Converte o tamanho do arquivo de int para char
@@ -756,8 +719,6 @@ int listAllProfilesAction(int sock) {
             sprintf(responseSize, "%s\n%s\n%s\n%s\n", searchedProfile.email, searchedProfile.firstName, 
                         searchedProfile.lastName, searchedProfile.academicBackground);
     }
-   
-
 
     write(sock, responseSize, strlen(responseSize)+1);
     fclose(file);
