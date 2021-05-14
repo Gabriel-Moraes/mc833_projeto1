@@ -42,71 +42,7 @@ char* removeBlanks(char* text, char* blank) {
  
    return blank;
 }
-// int readFile(FILE* fp, char* course){
-//     char email[30];
-//     char firstName[20];
-//     char lastName[20];
-//    if(fp==NULL){
-//        printf("Error\n");
-//        return -1;
-//    } else {
-//        char buffer[955];
-  
-//         // int row = 0;
-//         int column = 0;
-  
-//         while (fgets(buffer,
-//                      955, fp)) {
-//             column = 0;
-//             // row++;
-  
-  
-//             // Splitting the data
-//             char* value = strtok(buffer, ",");
-  
-//             while (value) {
-//                 // Column 1
-//                 if(column == 0) {
-                    
-//                     strcpy(email, value);
-//                 }
-//                 if(column == 1) {
-                    
-//                     strcpy(firstName,value);
-//                 }
-//                 if(column == 2) {
-                    
-//                     strcpy(lastName,value); 
-//                 }
-//                 if (column == 4) {
-//                     printf("%s\n", value);
-//                     if (strcmp(value,course)==0) {
-//                         printf(">>%s, %s, %s, %s<<\n", course,firstName, lastName, email);
-//                     }
-//                     // fscanf(fp,"%50s %20s %20s %30s\n", profile[n_p].academicBackground, profile[n_p].firstName,
-//                 //   profile[n_p].lastName, profile[n_p].email);
-                    
-                    
-//                                 //     profile[n_p].lastName, profile[n_p].email);
-//                 // return 0;
-//                 }
-  
-//                 // printf("%s", value);
-//                 value = strtok(NULL, ", ");
-//                 column++;
-//             }
-  
-//             printf("\n");
-//         }
-  
-//         // Close the file
-//         fclose(fp);
-//     }
-//     return 0;
-//    }
-//     // 
-
-
+//Funções para remover quebras de linha dos campos
 
 char* removeNewLinesEmail(char email[30]  ) {
 //     char* temp = strstr(email, "\r");
@@ -206,11 +142,6 @@ char* removeNewLines(char* data){
     }
     return data;
 }
-//     while ((temp = strstr(email, "\r")) != NULL) {
-// // Len is the length of the string, from the ampersand \n, including the \n.
-//         int len = strlen(email);
-//         memmove(temp, temp + 1, len); 
-//     }  
 
 char* createProfile(char email[30],	char firstName[20],	char lastName[20], char residence[30], char academicBackground[50], char graduationYear[4], char skills[300], char professionalExperience[300]) {
     char email2[30];
@@ -323,29 +254,6 @@ char* addProfessionalExperience(char email[30], int sock) {
 
     return NULL;
 }
-// int readFile(Profile people[], FILE* fp){
-//     int i = 0;
-//     if(fp==NULL){
-//        printf("Error\n");
-//        return -1;
-//     }else{
-//         int j = fread(&people[i], sizeof(Profile), 1, fp);
-//         printf("%d", j);
-//         while(j != 0 ){
-//            printf(">%s %s %s %s<\n", people[i].academicBackground, people[i].firstName,
-//             people[i].lastName, people[i].email);
-//             j = fread(&people[i], sizeof(Profile), 1, fp);
-//             i++;
-//         }
-       
-        
-        
-//    }
-//    return i;
-//     // fscanf(fp,"%50s %20s %20s %30s\n", people[n_p].academicBackground, people[n_p].firstName,
-//     //   people[n_p].lastName, people[n_p].email);
-    
-// }
 char* listGraduatedOnCourse(char* course) {
     FILE* file = NULL;
     file = fopen("files/users.csv", "r");
@@ -486,7 +394,8 @@ char* getProfileInfo(char* email) {
     }
 
     return NULL;
- }
+}
+
 char* removeProfile(char* email)
 {
     FILE* file = NULL;
@@ -520,28 +429,6 @@ char* removeProfile(char* email)
         return "Nao foi encontrado um perfil com este email!";
     }
 }
-// char* removeProfile(char* email) {
-//     FILE* file = NULL;
-//     file = fopen("files/users.csv", "r+");
-
-//     if (file == NULL) {
-//         printf("Falha ao abrir o arquivo!\n");
-//         return NULL;
-//     }
-
-//     Profile profileToRemove;
-//     char* emailNoNewLine = removeNewLines(email);
-//     while(fread(&profileToRemove, sizeof(Profile), 1, file)) {
-//         printf("Lendo o arquivo...\n");
-//         if(!strcmp(profileToRemove.email, emailNoNewLine)) {
-//             printf("Perfil encontrado! Removendo perfil...\n");
-//             // TODO implementar funçao para remover as linhas referentes ao perfil a ser removido
-//             //removeLinesFromFile();
-//             return "Perfil removido!";
-//         }
-//     }
-//         return "Nao foi encontrado um perfil com este email!";
-// }
 
 // Funçoes do header
 int treatClientActionRequest(int sock, char* request) {
@@ -848,20 +735,7 @@ int listGraduatedOnYearAction(int sock) {
 //     return count;
 // }
 
-// TODO resolver erro devido ao malloc que quebra o servidor
-// free(): double free detected in tcache 2
-// char* getAllCharsOnFile(FILE* file, int size) {
-//     char* c;
-//     char* returnMessage = malloc(size);
 
-//     // Conta a quantidade de caracteres no arquivo
-//     while ((c = fgetc(file)) != EOF) {
-//         strncpy(returnMessage, c, 1);
-//     }
-    
-//     fclose(file);
-//     return returnMessage;
-// }
 
 int listAllProfilesAction(int sock) {
     // Abre o arquivo dos usuarios
@@ -873,10 +747,8 @@ int listAllProfilesAction(int sock) {
         return -1;
     }
 
-    // int fileSize = countCharsOnFile(file);
+
     char responseSize[MAX];
-    // char* fullMessage;
-    // fullMessage = getAllCharsOnFile(file, fileSize);
     Profile searchedProfile;
     // Converte o tamanho do arquivo de int para char
     while(fread(&searchedProfile, sizeof(Profile), 1, file)) {
@@ -884,13 +756,10 @@ int listAllProfilesAction(int sock) {
             sprintf(responseSize, "%s\n%s\n%s\n%s\n", searchedProfile.email, searchedProfile.firstName, 
                         searchedProfile.lastName, searchedProfile.academicBackground);
     }
-    // sprintf(responseSize, "%d", fileSize);
+   
 
-    // printf("Mensagem enviada:\n%s", fullMessage);
+
     write(sock, responseSize, strlen(responseSize)+1);
-    // write(sock, fullMessage, strlen(fullMessage)+1);
-
-    // free(fullMessage);
     fclose(file);
     return 0;
 }
