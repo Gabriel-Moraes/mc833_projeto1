@@ -487,29 +487,61 @@ char* getProfileInfo(char* email) {
 
     return NULL;
  }
-
-char* removeProfile(char* email) {
+char* removeProfile(char* email)
+{
     FILE* file = NULL;
     file = fopen("files/users.csv", "r+");
-
+    FILE* newfile = fopen("temp.csv", "w");
     if (file == NULL) {
         printf("Falha ao abrir o arquivo!\n");
         return NULL;
     }
-
-    Profile profileToRemove;
-    char* emailNoNewLine = removeNewLines(email);
-    while(fread(&profileToRemove, sizeof(Profile), 1, file)) {
+    int success = 0;
+    Profile tempProfile;
+    while(!feof(file)){
         printf("Lendo o arquivo...\n");
-        if(!strcmp(profileToRemove.email, emailNoNewLine)) {
+        fread(&tempProfile, sizeof(tempProfile), 1, file);
+        if(strcmp(email, tempProfile.email)){
+            fwrite(&tempProfile, sizeof(tempProfile), 1, newfile);
+        } 
+        else{
             printf("Perfil encontrado! Removendo perfil...\n");
-            // TODO implementar funçao para remover as linhas referentes ao perfil a ser removido
-            //removeLinesFromFile();
-            return "Perfil removido!";
+            success = 1;
         }
     }
+    
+    fclose(newfile);
+    fclose(file);
+    remove("users.csv");
+    rename("temp.csv", "users.csv");
+    if(success) {
+        return "Perfil removido!";
+    } else{
         return "Nao foi encontrado um perfil com este email!";
+    }
 }
+// char* removeProfile(char* email) {
+//     FILE* file = NULL;
+//     file = fopen("files/users.csv", "r+");
+
+//     if (file == NULL) {
+//         printf("Falha ao abrir o arquivo!\n");
+//         return NULL;
+//     }
+
+//     Profile profileToRemove;
+//     char* emailNoNewLine = removeNewLines(email);
+//     while(fread(&profileToRemove, sizeof(Profile), 1, file)) {
+//         printf("Lendo o arquivo...\n");
+//         if(!strcmp(profileToRemove.email, emailNoNewLine)) {
+//             printf("Perfil encontrado! Removendo perfil...\n");
+//             // TODO implementar funçao para remover as linhas referentes ao perfil a ser removido
+//             //removeLinesFromFile();
+//             return "Perfil removido!";
+//         }
+//     }
+//         return "Nao foi encontrado um perfil com este email!";
+// }
 
 // Funçoes do header
 int treatClientActionRequest(int sock, char* request) {
@@ -544,7 +576,7 @@ int treatClientActionRequest(int sock, char* request) {
                 removeProfileAction(sock);
                 break;
             default: 
-                printf("Açao invalida!\n");
+                printf("Açao invalida!>%d<\n",sock);
                 return -1;	
         }
         return 0;
@@ -893,8 +925,8 @@ int removeProfileAction(int sock){
     write(sock, responseSize, strlen(responseSize)+1);
     write(sock, getEmailRemoveMessage, strlen(getEmailRemoveMessage)+1);
     read(sock, email, sizeof(email));
-
-    char* content = removeProfile(email);
+    char* email2 = removeNewLinesEmail(email);
+    char* content = removeProfile(email2);
 
     size_t sizeFinalMessage = strlen(content);
     sprintf(responseSize, "%d", (int) sizeFinalMessage);
