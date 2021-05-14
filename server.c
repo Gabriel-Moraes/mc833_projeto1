@@ -10,7 +10,16 @@
 #define PORT 8080
 #define MAX 200
 #define SockAddr struct sockaddr
-
+char* removeNewLinesServer(char* data){
+    int len = strlen(data);
+    int i;
+    for(i=0;i < len ; i++){
+        if(data[i]=='\n' || data[i] == '\t'|| data[i] == '\r') {
+            data[i] = 0;
+        }
+    }
+    return data;
+}
 void exchangeMessages(int sock) {
     char buff[MAX];
     // Loop infinito para manter a troca de mensagens
@@ -23,7 +32,11 @@ void exchangeMessages(int sock) {
 
 		// Printa a mensagem recebida
         printf("Mensagem recebida do cliente %d: %s\n", sock, buff);
-		int requestError = treatClientActionRequest(sock, buff);
+		char* buff2 = removeNewLinesServer(buff);
+		printf("esse e o buffer %s<\n", buff);
+		printf("esse e o sock %d<\n", sock);
+		
+		int requestError = treatClientActionRequest(sock, buff2);
 		if (requestError == -2) {
 	        // Caso o retorno seja -2, fecha a conexao
 			write(sock, "5", 2);
@@ -33,6 +46,7 @@ void exchangeMessages(int sock) {
 		} else if (requestError < 0) {
 			write(sock, "16", 3);
 			write(sock, "Açao invalida!\n", 16);
+			printf("requisicao: %d", requestError);
 		}
     }
 }
