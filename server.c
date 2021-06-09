@@ -1,15 +1,16 @@
-// Bibliotecas para o socket
-#include <sys/socket.h>
+// Server side implementation of UDP client-server model
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include <sys/types.h>
-#include <errno.h>
-#include <netinet/in.h>
+#include <sys/socket.h>
 #include <arpa/inet.h>
-
-#include "actions.h"
-
-#define PORT 8080
-#define MAX 200
+#include <netinet/in.h>
+#include <errno.h>
 #define SockAddr struct sockaddr
+#define PORT	 8080
+#define MAXLINE 1024
 char* removeNewLinesServer(char* data){
     int len = strlen(data);
     int i;
@@ -20,8 +21,10 @@ char* removeNewLinesServer(char* data){
     }
     return data;
 }
-void exchangeMessages(int sock) {
+
+void exchangeMessages(int sock, struct sockaddr_in clientAdress) {
     char buff[MAX];
+    int lenMessage;
     // Loop infinito para manter a troca de mensagens
     while (1) {
 		// Zera o conteúdo do buffer
@@ -39,33 +42,41 @@ void exchangeMessages(int sock) {
 		int requestError = treatClientActionRequest(sock, buff2);
 		if (requestError == -2) {
 	        // Caso o retorno seja -2, fecha a conexao
-			write(sock, "5", 2);
-			write(sock, "exit\n", 5);
+			// write(sock, "5", 2);
+			// write(sock, "exit\n", 5);
+            sendto(sock, "5", strlen("5"),
+		MSG_CONFIRM, (const struct sockaddr *) &clientAdress,
+			lenMessage);
+            sendto(sock, "exit\n", strlen("exit\n"),
+		MSG_CONFIRM, (const struct sockaddr *) &clientAdress,
+			lenMessage);
 			printf("Cliente %d saiu do servidor...\n", sock);
             break;
 		} else if (requestError < 0) {
-			write(sock, "16", 3);
-			write(sock, "Açao invalida!\n", 16);
+
+            sendto(sock, "16", strlen("16"),
+		MSG_CONFIRM, (const struct sockaddr *) &clientAdress,
+			lenMessage);
+            sendto(sock, "Açao invalida!\n", strlen("Açao invalida!\n"),
+		MSG_CONFIRM, (const struct sockaddr *) &clientAdress,
+			lenMessage);
 			printf("requisicao: %d", requestError);
 		}
     }
 }
-
-int main()
-{
-	int sock, connection, len;
-	struct sockaddr_in serverAddress, client;
-	int master_socket, client_socket[10], activity, i, sd;
-	int max_sd;
-	fd_set readfds;
-	int opt = 1;
-
-	// Inicializa o vetor de sockets 
+// Driver code
+int main() {
+	int sock;
+	char buffer[MAXLINE];
+	char *hello = "Hello from server";
+	struct sockaddr_in servAddress, clientAdress;
+	int client_socket[10];
+    int i, master_socket;
+    // Inicializa o vetor de sockets 
 	for (i=0; i < 10; i++) {
 		client_socket[i] = 0;
 	}
-
-	// Cria o socket mestre
+    // Cria o socket mestre
 	master_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (master_socket == 0) {
 		printf("Falha ao criar o socket... Erro: %d\n", errno);
@@ -74,99 +85,48 @@ int main()
 		printf("Socket criado com sucesso!\n");
 	}
 
-	if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
-		 perror("setsockopt");  
-       	 exit(EXIT_FAILURE);  
-	}
-	bzero(&serverAddress, sizeof(serverAddress));
 
+	// Creating socket file descriptor
+	// if ( (sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+	// 	perror("socket creation failed");
+	// 	exit(EXIT_FAILURE);
+	// }
+	
+	memset(&servAddress, 0, sizeof(servAddress));
+	memset(&clientAdress, 0, sizeof(clientAdress));
+	
 	// Atribui valores da porta, do tipo de IP e dos endereços aceitos para o servidor
-	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-	serverAddress.sin_port = htons(PORT);
-
-	// Faz o bind do socket com o endereço
-	int bindReturn = bind(master_socket, (SockAddr*)&serverAddress, sizeof(serverAddress));
-	if (bindReturn != 0) {
+	servAddress.sin_family = AF_INET; // IPv4
+	servAddress.sin_addr.s_addr = INADDR_ANY;
+	servAddress.sin_port = htons(PORT);
+	
+	// Bind the socket with the server address
+    int bindReturn = bind(master_socket, (SockAddr*)&serverAddress, sizeof(serverAddress));
+	if ( bindReturn != 0 )
+	{
 		printf("Falha ao realizar o bind... Erro: %d\n", errno);
 		exit(-1);
 	} else {
 		printf("Bind realizado com sucesso!\n");
 	}
+	
+	int len, n;
 
-	// Inicia a escuta de mensagens pelo servidor
-	int listenReturn = listen(master_socket, 10);
-	if (listenReturn != 0) {
-		printf("Falha ao escutar mensagem... Erro: %d\n", errno);
-		exit(-1);
-	} else {
-		printf("Servidor escutando...\n");
-	}
-	len = sizeof(client);
-	puts("Servidor esperando por conexões ...");
+	int lenMessage = sizeof(clientAdress); //len is value/resuslt
+    //para ler o dado que está vindo do cliente
+    printf("lendo mensagem do cliente...\n")
+	n = recvfrom(sock, (char *)buffer, MAXLINE,
+				MSG_WAITALL, ( struct sockaddr *) &clientAdress,
+				&lenMessage);
+	buffer[n] = '\0';
+	printf("Mensagem recebida do Cliente : %s\n", buffer);
+	
+    exchangeMessages(sock, clientAdress)
 
-	while (1) {
-		FD_ZERO(&readfds);
-
-		FD_SET(master_socket, &readfds);
-		max_sd = master_socket;
-
-		for (i = 0; i < 10 ; i++) {
-			sd = client_socket[i];
-
-			if (sd > 0) {
-				FD_SET(sd, &readfds);
-			}
-
-			if (sd > max_sd) {
-				max_sd = sd;
-			}
-		}
-
-		activity = select(max_sd + 1 , &readfds , NULL , NULL , NULL);         
-        if ((activity < 0) && (errno!=EINTR)) {  
-            printf("Erro no select\n");  
-        }  
-
-		// Escuta as solicitações de conexões 
-        if (FD_ISSET(master_socket, &readfds)) {  
-
-			// Recebe e aceita as conexões vindas de clientes
-			connection = accept(master_socket, (SockAddr*)&client, (socklen_t*)&len);
-			if (connection < 0) {
-				printf("Falha ao aceitar conexão... Erro: %d\n", errno);
-				exit(-1);
-			} else {
-				printf("Conexão aceita com sucesso!\n");
-			}
-
-			 // Adiciona um novo socket no vetor de sockets
-            for (i = 0; i < 10; i++) {  
-                // Insere caso seja uma posiçao vazia
-                if(client_socket[i] == 0) {  
-                    client_socket[i] = connection;  
-                    printf("Adicionando o socket como %d\n" , i);  
-                         
-                    break;  
-                }  
-            }  
-        } 
-
-		for (i = 0; i < 10; i++) {  
-            sd = client_socket[i];  
-                 
-            if (FD_ISSET( sd , &readfds)) {  
-				exchangeMessages(sd);
-				close(sd);
-				
-				client_socket[i] = 0;
-            } 
-        }		
-	}
-
-	// Após todas as conexões, fecha o socket
-	close(sock);
-	close(master_socket);
-
+    sendto(sock, (const char *)hello, strlen(hello),
+		MSG_CONFIRM, (const struct sockaddr *) &clientAdress,
+			len);
+	printf("Hello message sent.\n");
+	
 	return 0;
 }

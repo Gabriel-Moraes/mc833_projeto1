@@ -1,18 +1,16 @@
+// Client side implementation of UDP client-server model
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-// Bibliotecas para o socket
-#include <sys/socket.h>
+#include <string.h>
 #include <sys/types.h>
-#include <errno.h>
-#include <netinet/in.h>
+#include <sys/socket.h>
 #include <arpa/inet.h>
-#define PORT 8080
-#define MAX 200
-#define SockAddr struct sockaddr
+#include <netinet/in.h>
+#include<errno.h>
+#define PORT	 8080
+#define MAXLINE 1024
 
-// TODO implementar essa mensagem como retorno do servidor, nao como parte do cliente
 void printInitialMessage() {
 	printf("Bem vindo ao servidor! Para executar uma ação, insira uma das seguintes entradas:\n1: Criar um perfil\n"
 	"2: Adicionar uma experiencia profissional\n"
@@ -24,11 +22,7 @@ void printInitialMessage() {
 	"8: Remover um perfil\n"
 	"exit: Sair\n\n");
 }
-
-/** Realiza a troca de mensagens entre o cliente e o servidor */
-// TODO Verificar o que faz nao vir corretamente a mensagem de titulo do servidor
-// (desconfio que seja algum \n sobrando em alguns casos)
-void exchangeMessages(int sock) {
+void exchangeMessages(int sock, struct sockaddr * serverAddress) {
 	char buff[MAX];
 	int n, responseSize;
 	while(1) {
@@ -39,23 +33,33 @@ void exchangeMessages(int sock) {
 		while ((buff[n++] = getchar()) != '\n') {}
 		printf("Enviando mensagem: %s\n", buff);
 		// Escreve a mensagem excluindo o '\n'
-		write(sock, buff, strlen(buff)-1);
+
+        sendto(sock, buff, strlen(buff)-1,
+		MSG_CONFIRM, (const struct sockaddr *) &serverAddress,
+			sizeof(serverAddress));
+		// write(sock, buff, strlen(buff)-1);
 		bzero(buff, sizeof(buff));
 
 		// Le o tamanho do retorno
-		responseSize = 0;
-		read(sock, buff, 10);
-		responseSize = atoi(buff);
+        responseSize = recvfrom(sock, (char *)buff, MAXLINE,
+				MSG_WAITALL, (struct sockaddr *) &serverAddress,
+				&len);
+	    buff[n] = '\0';
+		// responseSize = 0;
+		// read(sock, buff, 10);
+		// responseSize = atoi(buff);
 	    printf("Tamanho da resposta: %d\n", responseSize);
 
-		bzero(buff, sizeof(buff));
-		printf("Resposta do servidor:\n");	
-		// Imprime a resposta completa do servidor, mesmo que envolva mais de uma operaçao no buffer
-		while(responseSize > 0) {
-			read(sock, buff, sizeof(buff));
-			printf("%s", buff);
-			responseSize-= (int) sizeof(buff);
-		}
+		// bzero(buff, sizeof(buff));
+		printf("Resposta do servidor:\n");
+        printf(" %s\n", buff);
+		// Imprime a resposta completa do servidor, mesmo que envolva mais de uma operaçao no buff
+		// while(responseSize > 0) {
+		// 	read(sock, buff, sizeof(buff));
+		// 	printf("%s", buff);
+		// 	responseSize-= (int) sizeof(buff);
+		// }
+
 		
 		// TODO Fazer funcionar corretamente para qualquer fluxo
 		if ((strncmp(buff, "exit", 4)) == 0) {
@@ -66,37 +70,45 @@ void exchangeMessages(int sock) {
 		printf("\n");
 	}
 }
-
+// Driver code
 int main() {
-	int sock;
-	struct sockaddr_in serverAddress;
+	int sockfd, sock;
+	char buff[MAXLINE];
+	char *hello = "Hello from client";
+	struct sockaddr_in	 serverAddress;
 
-	// Cria o socket
+    // Cria o socket
 	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == -1) {
+	if ( sock < 0 ) {
 		printf("Falha ao criar o socket... Erro: %d\n", errno);
 		exit(0);
 	} else {
 		printf("Socket criado com sucesso!\n");
 	}
-	bzero(&serverAddress, sizeof(serverAddress));
 
+	bzero(&serverAddress, sizeof(serverAddress));
 	// Atribui valores da porta, do tipo de IP e do endereço do servidor
 	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
 	serverAddress.sin_port = htons(PORT);
+	serverAddress.sin_addr.s_addr = INADDR_ANY;
+	
+	int n, len;
+	
+	sendto(sock, (const char *)hello, strlen(hello),
+		MSG_CONFIRM, (const struct sockaddr *) &serverAddress,
+			sizeof(serverAddress));
+	printf("Hello message sent.\n");
+		
+	n = recvfrom(sock, (char *)buff, MAXLINE,
+				MSG_WAITALL, (struct sockaddr *) &serverAddress,
+				&len);
+	buff[n] = '\0';
+	printf("Server : %s\n", buff);
 
-	// Conecta o socket do cliente com o socket do servidor
-	if (connect(sock, (SockAddr*)&serverAddress, sizeof(serverAddress)) != 0) {
-		printf("Falha na conexao com o servidor... Erro: %d\n", errno);
-		exit(0);
-	} else {
-		printf("Conectado ao servidor...\n");
-	}
 
-	printInitialMessage();
-	exchangeMessages(sock);
+    printInitialMessage();
+    exchangeMessages(sock, serverAddress);
 
-	// Fecha o socket
 	close(sock);
+	return 0;
 }
